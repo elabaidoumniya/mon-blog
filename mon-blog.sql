@@ -1,6 +1,7 @@
 drop table if exists T_COMMENTAIRE;
 drop table if exists T_BILLET;
-
+ 
+ 
 create table T_BILLET (
   BIL_ID integer primary key auto_increment,
   BIL_DATE datetime not null,

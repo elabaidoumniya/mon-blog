@@ -29,10 +29,10 @@
                     </article>
                     <hr />
                 <?php endforeach; ?>
-            </div> <!-- #contenu -->
+            </div> 
             <footer id="piedBlog">
                 Blog réalisé avec PHP, HTML5 et CSS.
             </footer>
-        </div> <!-- #global -->
+        </div> 
     </body>
 </html>
