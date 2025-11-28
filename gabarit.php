@@ -122,7 +122,7 @@
                 <!-- Footer -->
                 <footer id="footer">
                     <p class="copyright">
-                        &copy; 2024 Oumniya Dev Blog. Tous droits réservés.<br />
+                        &copy; 2025 Oumniya Dev Blog. Tous droits réservés.<br />
                         Design: <a href="https://html5up.net">HTML5 UP</a>.
                     </p>
                 </footer>
