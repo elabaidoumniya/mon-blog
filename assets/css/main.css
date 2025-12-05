@@ -2271,3 +2271,39 @@ button,
     border-top: 0;
     margin-top: 0;
     padding-top: 0; }
+
+    .titreBillet {
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 0.5rem;
+    transition: color 0.3s ease;
+}
+
+.titreBillet:hover {
+    color: #3498db;
+}
+
+#titreReponses {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin-top: 2rem;
+    border-bottom: 1px solid #bdc3c7;
+    padding-bottom: 0.5rem;
+}
+
+.commentaire {
+    background: #f8f9fa;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 5px;
+    border-left: 4px solid #3498db;
+}
+
+.commentaire p {
+    margin: 0.5rem 0;
+}
+
+.commentaire small {
+    color: #7f8c8d;
+    font-style: italic;
+}

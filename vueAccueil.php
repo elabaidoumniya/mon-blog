@@ -37,22 +37,24 @@ ob_start();
     <div class="posts">
         <?php foreach ($billets as $billet): ?>
         <article>
-            <header>
-                <h3><?= htmlspecialchars($billet['titre']) ?></h3>
-                <p class="meta">
-                    <i class="icon solid fa-calendar"></i> 
-                    Publié le <?= date('d/m/Y à H:i', strtotime($billet['date'])) ?>
-                </p>
-            </header>
-            <p><?= nl2br(htmlspecialchars($billet['contenu'])) ?></p>
-            <ul class="actions">
-                <li>
-                    <a href="billet.php?id=<?= $billet['id'] ?>" class="button">
-                        Lire la suite
-                    </a>
-                </li>
-            </ul>
-        </article>
+    <header>
+        <a href="index.php?action=billet&id=<?= $billet['id'] ?>">
+    <h3 class="titreBillet"><?= htmlspecialchars($billet['titre']) ?></h3>
+        </a>
+        <p class="meta">
+            <i class="icon solid fa-calendar"></i> 
+            Publié le <?= date('d/m/Y à H:i', strtotime($billet['date'])) ?>
+        </p>
+    </header>
+    <p><?= nl2br(htmlspecialchars($billet['contenu'])) ?></p>
+    <ul class="actions">
+        <li>
+            <a href="billet.php?id=<?= $billet['id'] ?>" class="button">
+                Lire la suite
+            </a>
+        </li>
+    </ul>
+  </article>
         <?php endforeach; ?>
         
         <?php if (empty($billets)): ?>
