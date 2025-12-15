@@ -1,8 +1,11 @@
-FROM php:8.0-apache
+FROM php:8.1-apache
 
-# Activer les extensions PHP nécessaires
 RUN docker-php-ext-install mysqli pdo pdo_mysql
 
-# Activer mod_rewrite pour les URLs
 RUN a2enmod rewrite
 
+COPY . /var/www/html/
+
+RUN chown -R www-data:www-data /var/www/html
+
+EXPOSE 80
