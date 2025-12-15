@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 function getBdd() {
     // Pour Docker : 'mysql' est le nom du service dans docker-compose
     // Pour local : 'localhost'
@@ -39,4 +39,5 @@ function getCommentaires($idBillet) {
     $commentaires->execute(array($idBillet));
     return $commentaires;
 }
+
 ?>
