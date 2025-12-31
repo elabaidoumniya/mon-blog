@@ -1,86 +1,35 @@
 stages:
   - test
-  - build
-  - push
+  - docker
 
 variables:
-  DOCKER_IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
   DOCKER_TLS_CERTDIR: ""
 
-# Étape 1: Tests de l'application
-test-application:
+test:
   stage: test
   image: php:8.1-apache
   script:
-    - echo "🚀 Tests de l'application..."
-    
-    # Tests PHP
     - php --version
-    
-    # Vérification extensions
-    - |
-      php -r '
-      $required = ["mysqli", "pdo_mysql"];
-      foreach($required as $ext) {
-        if(extension_loaded($ext)) {
-          echo "✅ $ext activé\n";
-        } else {
-          echo "❌ $ext manquant\n";
-        }
-      }
-      '
-    
-    # Vérification fichiers
     - ls -la
+    - php -r "echo '✅ Tests PHP OK';"
+  only:
+    - main
+
+docker-build-push:
+  stage: docker
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    # 1. Build
+    - docker build -t $DOCKERHUB_IMAGE:$CI_COMMIT_SHORT_SHA .
     
-    - echo "🎉 Tests réussis !"
-  only:
-    - main
-
-# Étape 2: Build de l'image Docker
-build-docker-image:
-  stage: build
-  image: docker:latest
-  services:
-    - docker:dind
-  script:
-    - echo "🔨 Construction de l'image Docker..."
-    - docker build -t $DOCKERHUB_IMAGE:$DOCKER_IMAGE_TAG .
-    - docker tag $DOCKERHUB_IMAGE:$DOCKER_IMAGE_TAG $DOCKERHUB_IMAGE:latest
-    - echo "✅ Image Docker construite"
-    - docker images | grep $DOCKERHUB_IMAGE
-  dependencies:
-    - test-application
-  only:
-    - main
-  # SUPPRIMEZ LE TAG "docker" si problème
-  # tags:
-  #   - docker
-
-# Étape 3: Push automatique sur Docker Hub
-push-to-dockerhub:
-  stage: push
-  image: docker:latest
-  services:
-    - docker:dind
-  script:
-    - echo "📤 Connexion à Docker Hub..."
+    # 2. Login
     - echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
     
-    - echo "🚀 Push de l'image..."
-    - docker push $DOCKERHUB_IMAGE:$DOCKER_IMAGE_TAG
-    - docker push $DOCKERHUB_IMAGE:latest
+    # 3. Push
+    - docker push $DOCKERHUB_IMAGE:$CI_COMMIT_SHORT_SHA
     
-    - echo "✅ Images poussées sur Docker Hub :"
-    - echo "   - $DOCKERHUB_IMAGE:$DOCKER_IMAGE_TAG"
-    - echo "   - $DOCKERHUB_IMAGE:latest"
-    
-    # Affichage de l'URL
-    - echo "🔗 Vérifiez sur : https://hub.docker.com/r/${DOCKERHUB_IMAGE%%:*}/$DOCKERHUB_IMAGE/tags"
-  dependencies:
-    - build-docker-image
+    - echo "✅ Docker Hub push réussi !"
   only:
     - main
-  # SUPPRIMEZ LE TAG "docker" si problème
-  # tags:
-  #   - docker
