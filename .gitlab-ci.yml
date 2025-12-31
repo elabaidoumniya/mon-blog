@@ -1,67 +1,51 @@
 stages:
   - test
 
-variables:
-  COMPOSE_PROJECT_NAME: gitlab-ci-$CI_PIPELINE_ID
-
-test-with-docker-compose:
+# Version SIMPLE qui fonctionne avec les runners partagés standards
+test-php-simple:
   stage: test
-  image: docker/compose:latest
-  services:
-    - docker:dind
-  tags:
-    - docker
+  image: php:8.1-apache
   script:
-    - echo "🚀 Démarrage des tests..."
+    - echo "🚀 Démarrage des tests PHP..."
     
-    # Étape 1: Vérifier Docker
-    - docker --version
-    - docker-compose --version
+    # Mise à jour et installation basique
+    - apt-get update && apt-get install -y curl git
     
-    # Étape 2: Démarrer les services
-    - echo "🐳 Lancement de Docker Compose..."
-    - docker-compose up -d
+    # Vérifications
+    - echo "=== VÉRIFICATIONS ==="
+    - php --version
+    - php -m | grep -i mysql
     
-    # Étape 3: Attendre et vérifier
-    - echo "⏳ Attente des services..."
-    - for i in {1..10}; do
-        if docker-compose ps | grep -q "Up"; then
-          echo "✅ Services démarrés"
-          break
-        fi
-        echo "⏱️ Tentative $i/10..."
-        sleep 5
-      done
+    # Structure du projet
+    - echo "=== STRUCTURE DU PROJET ==="
+    - ls -la
     
-    # Étape 4: Exécuter les tests
-    - echo "🧪 Exécution des vérifications..."
+    - echo "=== DOSSIER CONTROLEUR ==="
+    - ls -la Controleur/ 2>/dev/null || echo "⚠️ Dossier Controleur non trouvé"
     
-    # Test MySQL
-    - echo "📊 Test MySQL..."
-    - docker-compose exec -T mysql mysql -uroot -proot -e "SHOW DATABASES;" || echo "❌ MySQL non disponible"
+    - echo "=== DOSSIER TESTS ==="
+    - ls -la tests/ 2>/dev/null || echo "⚠️ Dossier tests non trouvé"
     
-    # Test PHP
-    - echo "🐘 Test PHP..."
-    - docker-compose exec -T apache php --version || echo "❌ PHP non disponible"
-    
-    # Test fichier
-    - echo "📁 Test fichiers..."
-    - docker-compose exec -T apache sh -c "ls -la && echo '---' && [ -d 'Controleur' ] && ls -la Controleur/ || echo 'Pas de Controleur'"
-    
-    # Test personnalisé (si existe)
-    - echo "🔍 Test personnalisé..."
-    - if docker-compose exec -T apache sh -c "[ -f 'tests/test_basic.php' ]"; then
-        docker-compose exec -T apache php tests/test_basic.php
+    # Exécution des tests
+    - echo "=== EXÉCUTION DES TESTS ==="
+    - if [ -f "tests/test_basic.php" ]; then
+        php tests/test_basic.php
+        echo "✅ Test PHP exécuté avec succès"
       else
-        echo "📝 Création test basique..."
-        docker-compose exec -T apache sh -c "echo '<?php echo \"✅ GitLab CI/CD fonctionne avec Docker Compose!\\n\"; ?>' > /tmp/test_gitlab.php && php /tmp/test_gitlab.php"
+        echo "📝 Création d'un test basique..."
+        echo '<?php 
+          echo "🎉 Test GitLab CI/CD réussi!\n";
+          echo "PHP Version: " . phpversion() . "\n";
+          echo "Extensions chargées:\n";
+          foreach(get_loaded_extensions() as $ext) {
+            echo "  - $ext\n";
+          }
+        ?>' > test_ci.php
+        php test_ci.php
+        rm test_ci.php
       fi
     
-    # Nettoyage (toujours exécuter)
-    - echo "🧹 Nettoyage..."
-    - docker-compose down || true
-    
-    - echo "🎉 PIPELINE TERMINÉ !"
+    - echo "🎉 PIPELINE TERMINÉ AVEC SUCCÈS !"
   only:
     - main
     - merge_requests
