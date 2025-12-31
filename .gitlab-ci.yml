@@ -9,6 +9,7 @@ test:
   variables:
     MYSQL_ROOT_PASSWORD: root
     MYSQL_DATABASE: monblog
+    MYSQL_SSL_MODE: DISABLED  # ← DÉSACTIVER SSL POUR LES TESTS CI
   before_script:
     - apt-get update && apt-get install -y default-mysql-client
   script:
@@ -18,15 +19,15 @@ test:
     - echo "✅ PHP Version:"
     - php --version
     
-    # Test 2: MySQL
+    # Test 2: MySQL (avec --ssl-mode=DISABLED)
     - echo "✅ Test MySQL..."
-    - mysql -h mysql -uroot -proot -e "SHOW DATABASES;"
+    - mysql -h mysql -uroot -proot --ssl-mode=DISABLED -e "SHOW DATABASES;"
     
-    # Test 3: Création base
+    # Test 3: Création base (avec --ssl-mode=DISABLED)
     - echo "✅ Création base de données..."
-    - mysql -h mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS monblog; USE monblog; SELECT 'Base prête' as status;"
+    - mysql -h mysql -uroot -proot --ssl-mode=DISABLED -e "CREATE DATABASE IF NOT EXISTS monblog; USE monblog; SELECT 'Base prête' as status;"
     
-    # Test 4: Extensions PHP (CORRIGÉ)
+    # Test 4: Extensions PHP
     - echo "✅ Vérification extensions..."
     - |
       php -r '
@@ -37,6 +38,29 @@ test:
     # Test 5: Fichiers projet
     - echo "✅ Structure projet..."
     - ls -la
+    
+    # Test 6: Connexion PHP à MySQL
+    - echo "✅ Test connexion PHP/MySQL..."
+    - |
+      php -r '
+      try {
+        // Désactiver SSL pour la connexion PDO
+        $options = [
+          PDO::MYSQL_ATTR_SSL_CA => false,
+          PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
+        ];
+        
+        $pdo = new PDO("mysql:host=mysql;dbname=monblog", "root", "root", $options);
+        echo "✅ Connexion PHP/MySQL réussie\n";
+        
+        // Tester une requête simple
+        $stmt = $pdo->query("SELECT 1 as test");
+        $result = $stmt->fetch();
+        echo "✅ Requête SQL fonctionne: " . $result["test"] . "\n";
+      } catch (PDOException $e) {
+        echo "❌ Erreur connexion: " . $e->getMessage() . "\n";
+      }
+      '
     
     - echo "🎉 Tous les tests passés !"
   only:
