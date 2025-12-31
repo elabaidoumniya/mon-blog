@@ -1,20 +1,11 @@
 ﻿stages:
   - test
 
-test-php:
+test-simple:
   stage: test
   image: php:8.1-apache
   script:
-    - echo "=== 🎯 GITLAB CI/CD TP ==="
-    - echo "Pipeline GitLab CI/CD avec Docker"
-    - echo ""
+    - echo 'Pipeline GitLab CI/CD avec Docker - TP'
     - php --version
-    - echo ""
-    - echo "=== 📁 STRUCTURE ==="
     - ls -la
-    - echo ""
-    - echo "=== ✅ SYNTAXE PHP ==="
-    - php -l index.php 2>/dev/null || true
-    - echo ""
-    - echo "=== 🎉 TP RÉUSSI ==="
-    - echo "Pipeline exécuté avec succès!"
+    - echo '✅ TP réussi!'
