@@ -1,35 +1,38 @@
+# GitLab CI/CD - Tests seulement
 stages:
   - test
-  - docker
 
-variables:
-  DOCKER_TLS_CERTDIR: ""
-
-test:
+test-gitlab:
   stage: test
   image: php:8.1-apache
   script:
+    - echo "🧪 Tests GitLab CI/CD..."
     - php --version
     - ls -la
-    - php -r "echo '✅ Tests PHP OK';"
-  only:
-    - main
-
-docker-build-push:
-  stage: docker
-  image: docker:latest
-  services:
-    - docker:dind
-  script:
-    # 1. Build
-    - docker build -t $DOCKERHUB_IMAGE:$CI_COMMIT_SHORT_SHA .
     
-    # 2. Login
-    - echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
+    # Vérifier structure
+    - echo "=== STRUCTURE PROJET ==="
+    - find . -name "*.php" | head -10
     
-    # 3. Push
-    - docker push $DOCKERHUB_IMAGE:$CI_COMMIT_SHORT_SHA
+    # Test MySQL extensions
+    - |
+      php -r '
+      echo "=== EXTENSIONS PHP ===\n";
+      $exts = ["mysqli", "pdo_mysql", "pdo"];
+      $all_ok = true;
+      foreach($exts as $ext) {
+        if(extension_loaded($ext)) {
+          echo "✅ $ext\n";
+        } else {
+          echo "❌ $ext\n";
+          $all_ok = false;
+        }
+      }
+      if($all_ok) {
+        echo "\n🎉 Toutes les extensions sont présentes\n";
+      }
+      '
     
-    - echo "✅ Docker Hub push réussi !"
+    - echo "✅ Pipeline GitLab CI/CD réussi !"
   only:
     - main
