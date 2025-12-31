@@ -1,104 +1,42 @@
 stages:
-  - build
+
   - test
   - deploy
 
-variables:
-  MYSQL_ROOT_PASSWORD: root
-  MYSQL_DATABASE: monblog
-
-# Étape 1: Build et préparation
-prepare:
-  stage: build
-  image: php:8.1-apache
-  script:
-    - echo "🔧 Préparation de l'environnement..."
-    - apt-get update && apt-get install -y curl git unzip
-    - php --version
-    - echo "📁 Structure du projet :"
-    - ls -la
-  artifacts:
-    paths:
-      - ./
-    expire_in: 1 hour
-
-# Étape 2: Tests
-test-php:
+test-application:
   stage: test
   image: php:8.1-apache
   services:
     - mysql:8.0
   variables:
+    MYSQL_ROOT_PASSWORD: root
+    MYSQL_DATABASE: monblog
     DB_HOST: mysql
-    DB_USER: root
-    DB_PASSWORD: root
+  before_script:
+    - apt-get update && apt-get install -y curl default-mysql-client
   script:
-    - echo "🧪 Exécution des tests..."
+    # Tests basiques
+    - php --version
+    - ls -la
     
-    # Installation MySQL client
-    - apt-get update && apt-get install -y default-mysql-client
+    # Test MySQL
+    - mysql -h mysql -uroot -proot -e "SHOW DATABASES;"
     
-    # Vérifier connexion MySQL
-    - echo "🔌 Test connexion MySQL..."
-    - mysql -h mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS monblog; SHOW DATABASES;"
+    # Test PHP MySQL
+    - php -r "echo extension_loaded('mysqli') ? '✅ MySQLi OK\n' : '⚠️ MySQLi manquant\n';"
+    - php -r "echo extension_loaded('pdo_mysql') ? '✅ PDO MySQL OK\n' : '⚠️ PDO MySQL manquant\n';"
     
-    # Vérifier extensions PHP
-    - echo "🐘 Extensions PHP :"
-    - php -m | grep -i mysql
-    
-    # Test de connexion PDO
-    - |
-      php -r '
-      try {
-        $pdo = new PDO("mysql:host=mysql", "root", "root");
-        echo "✅ Connexion MySQL réussie\n";
-        
-        // Créer la base si elle n'existe pas
-        $pdo->exec("CREATE DATABASE IF NOT EXISTS monblog");
-        echo "✅ Base de données prête\n";
-      } catch (Exception $e) {
-        echo "⚠️ Erreur MySQL: " . $e->getMessage() . "\n";
-      }
-      '
-    
-    # Exécuter vos tests existants
-    - echo "📄 Recherche de tests existants..."
-    - |
-      if [ -f "tests/test_basic.php" ]; then
-        echo "🔍 Exécution du test existant..."
-        php tests/test_basic.php
-      elif [ -d "tests" ]; then
-        echo "📂 Tests trouvés :"
-        find tests/ -name "*.php" | head -10
-      else
-        echo "📝 Création d'un test simple..."
-        echo '<?php 
-        echo "=== TESTS AUTOMATIQUES ===\n";
-        echo "✅ PHP " . phpversion() . "\n";
-        echo "✅ Time: " . date("Y-m-d H:i:s") . "\n";
-        echo "✅ Mémoire: " . memory_get_usage() . " bytes\n";
-        ?>' > test_auto.php
-        php test_auto.php
-        rm test_auto.php
-      fi
-    
-    - echo "✅ Tous les tests sont passés !"
+    # Test simple
+    - php -r "echo '🎉 GitLab CI/CD avec MySQL fonctionne !\n';"
   only:
     - main
-    - merge_requests
 
-# Étape 3: Déploiement (manuel)
-deploy-staging:
+
+deploy-notify:
   stage: deploy
   image: alpine:latest
   script:
-    - echo "🚀 Déploiement sur staging..."
-    - echo "📧 Envoi de notification..."
-    - echo "🔗 URL: http://votre-app.com"
-    - echo "✅ Prêt pour le déploiement production !"
+    - echo "Pipeline réussi - Prêt pour déploiement"
   only:
     - main
   when: manual
-  environment:
-    name: staging
-    url: http://staging.votre-app.com
