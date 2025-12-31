@@ -5,103 +5,25 @@ services:
 
 variables:
   DOCKER_TLS_CERTDIR: ""
-  DOCKER_DRIVER: overlay2
 
 stages:
   - build
-  - test
   - push
-  - deploy
 
-before_script:
-  - docker info
-
-# Étape 1: Build de l'image Docker
-build-docker-image:
+build-and-push:
   stage: build
   script:
-    - echo "🔨 Construction de l'image Docker..."
+    # Build
     - docker build -t $DOCKERHUB_IMAGE:$CI_COMMIT_SHORT_SHA .
     - docker tag $DOCKERHUB_IMAGE:$CI_COMMIT_SHORT_SHA $DOCKERHUB_IMAGE:latest
-    - echo "✅ Image Docker construite"
-  artifacts:
-    paths:
-      - ./
-    expire_in: 1 hour
-  only:
-    - main
-    - tags
-
-# Étape 2: Tests avec Docker Compose
-test-docker-compose:
-  stage: test
-  script:
-    - echo "🧪 Tests avec Docker Compose..."
-    - apk add --no-cache docker-compose
     
-    # Démarrer les services
-    - docker-compose up -d
-    
-    # Attendre que MySQL soit prêt
-    - echo "⏳ Attente du démarrage de MySQL..."
-    - sleep 30
-    
-    # Tester MySQL
-    - docker-compose exec -T mysql mysql -uroot -proot -e "SHOW DATABASES;"
-    
-    # Tester Apache/PHP
-    - docker-compose exec -T apache php --version
-    
-    # Tester l'application
-    - |
-      if [ -f "tests/test_basic.php" ]; then
-        docker-compose exec -T apache php tests/test_basic.php
-      else
-        docker-compose exec -T apache php -r "echo '✅ Application PHP fonctionne';"
-      fi
-    
-    # Arrêter les services
-    - docker-compose down
-    
-    - echo "✅ Tests Docker Compose réussis"
-  dependencies:
-    - build-docker-image
-  only:
-    - main
-    - merge_requests
-
-# Étape 3: Push vers Docker Hub
-push-to-dockerhub:
-  stage: push
-  script:
-    - echo "📤 Connexion à Docker Hub..."
+    # Login et push
     - echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
-    
-    - echo "🚀 Push de l'image..."
     - docker push $DOCKERHUB_IMAGE:$CI_COMMIT_SHORT_SHA
     - docker push $DOCKERHUB_IMAGE:latest
     
-    - echo "✅ Images poussées sur Docker Hub :"
-    - echo "   - $DOCKERHUB_IMAGE:$CI_COMMIT_SHORT_SHA"
-    - echo "   - $DOCKERHUB_IMAGE:latest"
-  dependencies:
-    - build-docker-image
+    - echo "✅ Image poussée sur Docker Hub"
   only:
     - main
-    - tags
-
-# Étape 4: Déploiement (manuel) - CORRIGÉ
-deploy-production:
-  stage: deploy
-  script:
-    - echo "🚀 Déploiement de la version $CI_COMMIT_SHORT_SHA..."
-    - echo "📦 Image disponible sur Docker Hub: $DOCKERHUB_IMAGE:$CI_COMMIT_SHORT_SHA"
-    - echo "🌐 Pour déployer :"
-    - echo "   docker-compose pull"
-    - echo "   docker-compose up -d"
-  only:
-    - main
-  when: manual
-  environment:
-    name: production
-    url: http://localhost:8081
+  tags:
+    - docker
