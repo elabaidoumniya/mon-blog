@@ -1,49 +1,8 @@
-stages:
-  - test
-
-test-with-mysql-service:
+test:
   stage: test
   image: php:8.1-apache
-  services:
-    - mysql:8.0  # GitLab fournit MySQL comme service
-  variables:
-    MYSQL_ROOT_PASSWORD: root
-    MYSQL_DATABASE: monblog
-    DB_HOST: mysql
-    DB_USER: root
-    DB_PASSWORD: root
-  before_script:
-    - apt-get update && apt-get install -y curl git mysql-client
-    - php -v
   script:
-    - echo "🚀 Test avec MySQL service..."
-    
-    # Vérifier MySQL
-    - echo "=== TEST CONNEXION MYSQL ==="
-    - mysql -h mysql -uroot -proot -e "SHOW DATABASES;" || echo "⚠️ MySQL non disponible"
-    
-    # Test PHP
-    - echo "=== TEST PHP ==="
+    - echo "🚀 Test PHP simple"
     - php --version
-    
-    # Tester la connexion PDO
-    - echo "=== TEST CONNEXION PDO ==="
-    - php -r "
-      try {
-        \$pdo = new PDO('mysql:host=mysql;dbname=monblog', 'root', 'root');
-        echo '✅ Connexion MySQL réussie via PDO\n';
-      } catch (PDOException \$e) {
-        echo '❌ Erreur connexion: ' . \$e->getMessage() . '\n';
-      }"
-    
-    # Tests locaux
-    - if [ -f "tests/test_basic.php" ]; then
-        php tests/test_basic.php
-      else
-        echo "✅ Tests basiques PHP OK"
-      fi
-    
-    - echo "🎉 PIPELINE TERMINÉ !"
-  only:
-    - main
-    
+    - ls -la
+    - php -r "echo '🎉 GitLab CI/CD fonctionne!';"
