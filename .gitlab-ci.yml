@@ -1,35 +1,59 @@
 stages:
   - test
+  - deploy
 
-test-all:
+variables:
+  DOCKER_IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
+
+test-application:
   stage: test
   image: php:8.1-apache
   script:
-    - echo "🚀 Pipeline CI/CD GitLab"
-    - echo "📅 $(date)"
+    - echo "🚀 Tests de l'application..."
     
-    # Test PHP
+    # Tests PHP
     - php --version
     
-    # Test MySQL extensions
-    - php -r "echo extension_loaded('mysqli') ? '✅ MySQLi OK\n' : '❌ MySQLi KO\n';"
-    - php -r "echo extension_loaded('pdo_mysql') ? '✅ PDO MySQL OK\n' : '❌ PDO MySQL KO\n';"
+    # Vérification extensions
+    - |
+      php -r '
+      $required = ["mysqli", "pdo_mysql"];
+      foreach($required as $ext) {
+        if(extension_loaded($ext)) {
+          echo "✅ $ext activé\n";
+        } else {
+          echo "❌ $ext manquant\n";
+        }
+      }
+      '
     
-    # Test fichiers
+    # Vérification fichiers
     - ls -la
     
-    # Test personnalisé
-    - |
-      if [ -f "tests/test_basic.php" ]; then
-        php tests/test_basic.php
-      else
-        echo '<?php echo "✅ Application fonctionne"; ?>' | php
-      fi
-    
-    - echo "🎉 Pipeline terminé avec succès!"
-    - echo ""
-    - echo "📦 Pour Docker Hub (manuel) :"
-    - echo "   docker build -t $DOCKERHUB_IMAGE:$CI_COMMIT_SHORT_SHA ."
-    - echo "   docker push $DOCKERHUB_IMAGE:$CI_COMMIT_SHORT_SHA"
+    - echo "🎉 Tests réussis !"
   only:
     - main
+
+docker-hub-instructions:
+  stage: deploy
+  image: alpine:latest
+  script:
+    - echo "📋 INSTRUCTIONS POUR DOCKER HUB :"
+    - echo ""
+    - echo "1. Build l'image localement :"
+    - echo "   docker build -t $DOCKERHUB_IMAGE:$DOCKER_IMAGE_TAG ."
+    - echo ""
+    - echo "2. Tag pour latest :"
+    - echo "   docker tag $DOCKERHUB_IMAGE:$DOCKER_IMAGE_TAG $DOCKERHUB_IMAGE:latest"
+    - echo ""
+    - echo "3. Login à Docker Hub :"
+    - echo "   docker login -u $DOCKERHUB_USERNAME"
+    - echo ""
+    - echo "4. Push les images :"
+    - echo "   docker push $DOCKERHUB_IMAGE:$DOCKER_IMAGE_TAG"
+    - echo "   docker push $DOCKERHUB_IMAGE:latest"
+    - echo ""
+    - echo "✅ Instructions générées"
+  only:
+    - main
+  when: manual
