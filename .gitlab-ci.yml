@@ -6,10 +6,6 @@ services:
 variables:
   DOCKER_TLS_CERTDIR: ""
   DOCKER_DRIVER: overlay2
-  # À définir dans Settings > CI/CD > Variables de GitLab :
-  # DOCKERHUB_USERNAME: "votre_nom"
-  # DOCKERHUB_PASSWORD: "votre_token"
-  # DOCKERHUB_IMAGE: "votre_nom/mon-blog"
 
 stages:
   - build
@@ -94,7 +90,7 @@ push-to-dockerhub:
     - main
     - tags
 
-# Étape 4: Déploiement (manuel)
+# Étape 4: Déploiement (manuel) - CORRIGÉ
 deploy-production:
   stage: deploy
   script:
