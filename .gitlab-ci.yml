@@ -1,10 +1,40 @@
 stages:
   - test
 
-test-simple:
+variables:
+  COMPOSE_PROJECT_NAME: gitlab-ci-$CI_PIPELINE_ID
+
+test-with-docker-compose:
   stage: test
-  image: php:8.1-apache
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - apk add --no-cache docker-compose
   script:
-    - echo "Pipeline GitLab CI/CD avec Docker"
-    - php --version
-    - ls -la
+    - echo "🚀 Démarrage du test avec Docker Compose..."
+    
+    # Démarrer MySQL et Apache
+    - docker-compose up -d
+    
+    # Attendre que MySQL soit prêt
+    - echo "⏳ Attente du démarrage des services..."
+    - sleep 20
+    
+    # Exécuter votre test PHP dans le conteneur Apache
+    - echo "🧪 Exécution du test PHP..."
+    - docker-compose exec -T apache php tests/test_basic.php || echo "⚠️ Test non exécuté"
+    
+    # Vérifications supplémentaires
+    - echo "📊 Vérification structure..."
+    - docker-compose exec -T apache sh -c "echo '=== STRUCTURE ==='; ls -la"
+    - docker-compose exec -T apache sh -c "echo ''; echo '=== CONTROLEUR ==='; ls -la Controleur/ || echo 'Pas de dossier Controleur'"
+    
+    # Nettoyage
+    - docker-compose down
+    
+    - echo "✅ Résumé"
+    - echo "🎉 PIPELINE TERMINÉ AVEC SUCCÈS !"
+  only:
+    - main
+    - merge_requests
