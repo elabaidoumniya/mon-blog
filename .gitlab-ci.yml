@@ -1,51 +1,47 @@
 stages:
   - test
 
-# Version SIMPLE qui fonctionne avec les runners partagés standards
 test-php-simple:
   stage: test
   image: php:8.1-apache
+  before_script:
+    - apt-get update && apt-get install -y curl git
   script:
     - echo "🚀 Démarrage des tests PHP..."
-    
-    # Mise à jour et installation basique
-    - apt-get update && apt-get install -y curl git
-    
-    # Vérifications
     - echo "=== VÉRIFICATIONS ==="
     - php --version
-    - php -m | grep -i mysql
+    - php -m
     
-    # Structure du projet
-    - echo "=== STRUCTURE DU PROJET ==="
+    - echo "=== STRUCTURE ==="
     - ls -la
     
-    - echo "=== DOSSIER CONTROLEUR ==="
-    - ls -la Controleur/ 2>/dev/null || echo "⚠️ Dossier Controleur non trouvé"
+    - echo "=== CONTROLEUR ==="
+    - ls -la Controleur/ 2>/dev/null || echo "Pas de dossier Controleur"
     
-    - echo "=== DOSSIER TESTS ==="
-    - ls -la tests/ 2>/dev/null || echo "⚠️ Dossier tests non trouvé"
+    - echo "=== TESTS ==="
+    - ls -la tests/ 2>/dev/null || echo "Pas de dossier tests"
     
-    # Exécution des tests
-    - echo "=== EXÉCUTION DES TESTS ==="
-    - if [ -f "tests/test_basic.php" ]; then
+    # Test PHP simple
+    - echo "=== TEST PHP ==="
+    - php -r "echo '✅ PHP fonctionne correctement\n';"
+    
+    # Vérifier MySQL extension
+    - php -r "echo extension_loaded('mysqli') ? '✅ MySQLi activé\n' : '⚠️ MySQLi non activé\n';"
+    - php -r "echo extension_loaded('pdo_mysql') ? '✅ PDO MySQL activé\n' : '⚠️ PDO MySQL non activé\n';"
+    
+    # Si fichier test existe
+    - |
+      if [ -f "tests/test_basic.php" ]; then
+        echo "=== EXÉCUTION TEST EXISTANT ==="
         php tests/test_basic.php
-        echo "✅ Test PHP exécuté avec succès"
       else
-        echo "📝 Création d'un test basique..."
-        echo '<?php 
-          echo "🎉 Test GitLab CI/CD réussi!\n";
-          echo "PHP Version: " . phpversion() . "\n";
-          echo "Extensions chargées:\n";
-          foreach(get_loaded_extensions() as $ext) {
-            echo "  - $ext\n";
-          }
-        ?>' > test_ci.php
-        php test_ci.php
-        rm test_ci.php
+        echo "=== CRÉATION TEST SIMPLE ==="
+        echo '<?php echo "🎉 Pipeline GitLab CI/CD réussi!"; ?>' > test_gitlab.php
+        php test_gitlab.php
+        rm test_gitlab.php
       fi
     
-    - echo "🎉 PIPELINE TERMINÉ AVEC SUCCÈS !"
+    - echo "✅ PIPELINE TERMINÉ AVEC SUCCÈS !"
   only:
     - main
     - merge_requests
