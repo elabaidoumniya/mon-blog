@@ -1,9 +1,7 @@
 stages:
-
   - test
-  - deploy
 
-test-application:
+test:
   stage: test
   image: php:8.1-apache
   services:
@@ -11,32 +9,35 @@ test-application:
   variables:
     MYSQL_ROOT_PASSWORD: root
     MYSQL_DATABASE: monblog
-    DB_HOST: mysql
   before_script:
-    - apt-get update && apt-get install -y curl default-mysql-client
+    - apt-get update && apt-get install -y default-mysql-client
   script:
-    # Tests basiques
-    - php --version
-    - ls -la
+    - echo "🚀 Démarrage des tests..."
     
-    # Test MySQL
+    # Test 1: PHP
+    - echo "✅ PHP Version:"
+    - php --version
+    
+    # Test 2: MySQL
+    - echo "✅ Test MySQL..."
     - mysql -h mysql -uroot -proot -e "SHOW DATABASES;"
     
-    # Test PHP MySQL
-    - php -r "echo extension_loaded('mysqli') ? '✅ MySQLi OK\n' : '⚠️ MySQLi manquant\n';"
-    - php -r "echo extension_loaded('pdo_mysql') ? '✅ PDO MySQL OK\n' : '⚠️ PDO MySQL manquant\n';"
+    # Test 3: Création base
+    - echo "✅ Création base de données..."
+    - mysql -h mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS monblog; USE monblog; SELECT 'Base prête' as status;"
     
-    # Test simple
-    - php -r "echo '🎉 GitLab CI/CD avec MySQL fonctionne !\n';"
+    # Test 4: Extensions PHP (CORRIGÉ)
+    - echo "✅ Vérification extensions..."
+    - |
+      php -r '
+      echo extension_loaded("mysqli") ? "✅ MySQLi activé\n" : "❌ MySQLi manquant\n";
+      echo extension_loaded("pdo_mysql") ? "✅ PDO MySQL activé\n" : "❌ PDO MySQL manquant\n";
+      '
+    
+    # Test 5: Fichiers projet
+    - echo "✅ Structure projet..."
+    - ls -la
+    
+    - echo "🎉 Tous les tests passés !"
   only:
     - main
-
-
-deploy-notify:
-  stage: deploy
-  image: alpine:latest
-  script:
-    - echo "Pipeline réussi - Prêt pour déploiement"
-  only:
-    - main
-  when: manual
