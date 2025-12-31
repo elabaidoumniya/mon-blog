@@ -1,11 +1,10 @@
-﻿stages:
+stages:
   - test
 
 test-simple:
   stage: test
   image: php:8.1-apache
   script:
-    - echo 'Pipeline GitLab CI/CD avec Docker - TP'
+    - echo "Pipeline GitLab CI/CD avec Docker"
     - php --version
     - ls -la
-    - echo '✅ TP réussi!'
