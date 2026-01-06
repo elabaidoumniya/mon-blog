@@ -1,6 +1,5 @@
 <?php
-$titre = 'Erreur - Mon Blog';
-ob_start();
+$this->titre = 'Erreur - Mon Blog';
 ?>
 
 <div class="error-container">
@@ -12,8 +11,3 @@ ob_start();
     <p>Notre équipe technique a été informée. Veuillez réessayer plus tard.</p>
     <a href="index.php" class="button">Retour à l'accueil</a>
 </div>
-
-<?php
-$contenu = ob_get_clean();
-require 'Vue/gabarit.php';
-?>

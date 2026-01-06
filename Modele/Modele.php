@@ -1,43 +1,38 @@
 ﻿<?php
-function getBdd() {
-    // Pour Docker : 'mysql' est le nom du service dans docker-compose
-    // Pour local : 'localhost'
-    $host = getenv('DB_HOST') ?: 'localhost';
-    $dbname = getenv('DB_NAME') ?: 'monblog';
-    $username = getenv('DB_USER') ?: 'root';
-    $password = getenv('DB_PASSWORD') ?: '';
-    
-    $bdd = new PDO(
-        "mysql:host=$host;dbname=$dbname;charset=utf8",
-        $username, 
-        $password, 
-        array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
-    );
-    return $bdd;
-}
 
-function getBillets() {
-    $bdd = getBdd();
-    $billets = $bdd->query('select BIL_ID as id, BIL_DATE as date, BIL_TITRE as titre, BIL_CONTENU as contenu from T_BILLET order by BIL_ID desc');
-    return $billets;
-}
+abstract class Modele {
 
-function getBillet($idBillet) {
-    $bdd = getBdd();
-    $billet = $bdd->prepare('SELECT BIL_ID as id, BIL_DATE as date, BIL_TITRE as titre, BIL_CONTENU as contenu FROM T_BILLET WHERE BIL_ID=?');
-    $billet->execute(array($idBillet));
-    
-    if ($billet->rowCount() == 1)
-        return $billet->fetch();
-    else
-        throw new Exception("Aucun billet ne correspond à l'identifiant '$idBillet'");
-}
+    // Objet PDO d'accès à la BD
+    private $bdd;
 
-function getCommentaires($idBillet) {
-    $bdd = getBdd();
-    $commentaires = $bdd->prepare('SELECT COM_ID as id, COM_DATE as date, COM_AUTEUR as auteur, COM_CONTENU as contenu FROM T_COMMENTAIRE WHERE BIL_ID=?');
-    $commentaires->execute(array($idBillet));
-    return $commentaires;
-}
+    // Exécute une requête SQL éventuellement paramétrée
+    protected function executerRequete($sql, $params = null) {
+        if ($params == null) {
+            $resultat = $this->getBdd()->query($sql); // exécution directe
+        }
+        else {
+            $resultat = $this->getBdd()->prepare($sql); // requête préparée
+            $resultat->execute($params);
+        }
+        return $resultat;
+    }
 
-?>
+    // Renvoie un objet de connexion à la BD en initialisant la connexion au besoin
+    private function getBdd() {
+        if ($this->bdd == null) {
+            // Création de la connexion
+            $host = getenv('DB_HOST') ?: 'localhost';
+            $dbname = getenv('DB_NAME') ?: 'monblog';
+            $username = getenv('DB_USER') ?: 'root';
+            $password = getenv('DB_PASSWORD') ?: '';
+
+            $this->bdd = new PDO(
+                "mysql:host=$host;dbname=$dbname;charset=utf8",
+                $username,
+                $password,
+                array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+            );
+        }
+        return $this->bdd;
+    }
+}

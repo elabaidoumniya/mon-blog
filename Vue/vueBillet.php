@@ -1,6 +1,5 @@
 <?php 
-$titre = "Mon Blog - " . $billet['titre']; 
-ob_start(); 
+$this->titre = "Mon Blog - " . $billet['titre']; 
 ?>
 
 <article>
@@ -25,8 +24,3 @@ ob_start();
     </div>
     <hr />
 <?php endforeach; ?>
-
-<?php 
-$contenu = ob_get_clean(); 
-require 'Vue/gabarit.php'; 
-?>

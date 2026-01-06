@@ -1,6 +1,5 @@
 <?php
-$titre = '💻 Oumniya Dev Blog - Génie Logiciel';
-ob_start();
+$this->titre = '💻 Oumniya Dev Blog - Génie Logiciel';
 ?>
 
 <!-- Banner Section -->
@@ -49,7 +48,7 @@ ob_start();
     <p><?= nl2br(htmlspecialchars($billet['contenu'])) ?></p>
     <ul class="actions">
         <li>
-            <a href="billet.php?id=<?= $billet['id'] ?>" class="button">
+            <a href="index.php?action=billet&id=<?= $billet['id'] ?>" class="button">
                 Lire la suite
             </a>
         </li>
@@ -67,8 +66,3 @@ ob_start();
         <?php endif; ?>
     </div>
 </section>
-
-<?php
-$contenu = ob_get_clean();
-require 'Vue/gabarit.php';
-?>
