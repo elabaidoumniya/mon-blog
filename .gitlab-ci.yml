@@ -41,7 +41,6 @@ deploy:
     - echo "Deploying the application..."
     - apk add --no-cache docker-compose
     - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-    - docker push $DOCKERHUB_USERNAME/$DOCKERHUB_IMAGE:latest
     - docker-compose up -d
 
 notify:
