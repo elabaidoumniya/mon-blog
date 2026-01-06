@@ -1,7 +1,9 @@
 stages:
   - build
   - test
+  - lint
   - deploy
+  - notify
 
 build:
   stage: build
@@ -9,6 +11,7 @@ build:
   services:
     - docker:dind
   script:
+    - echo "Building the application..."
     - docker build -t $DOCKERHUB_IMAGE .
     - docker tag $DOCKERHUB_IMAGE $DOCKERHUB_USERNAME/$DOCKERHUB_IMAGE:latest
 
@@ -18,7 +21,14 @@ test:
   services:
     - docker:dind
   script:
+    - echo "Testing the application..."
     - docker run $DOCKERHUB_USERNAME/$DOCKERHUB_IMAGE:latest
+
+lint:
+  stage: lint
+  image: docker:latest
+  script:
+    - echo "Linting the code..."
 
 deploy:
   stage: deploy
@@ -26,6 +36,13 @@ deploy:
   services:
     - docker:dind
   script:
-    - docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD $CI_REGISTRY
+    - echo "Deploying the application..."
+    - docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
     - docker push $DOCKERHUB_USERNAME/$DOCKERHUB_IMAGE:latest
     - docker-compose up -d
+
+notify:
+  stage: notify
+  image: docker:latest
+  script:
+    - echo "Notifying the team..."
